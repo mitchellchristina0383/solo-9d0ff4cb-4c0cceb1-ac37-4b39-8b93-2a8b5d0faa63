@@ -1,5 +1,5 @@
 services:
-  # 管理接口：FastAPI，/docs 上传 PEM，查看现役指纹
+  # 管理接口：FastAPI，/docs 上传 PEM，查看现役指纹、发起 TLS 探测
   mgmt:
     build: .
     image: cert-rotate-demo:latest
@@ -8,6 +8,11 @@ services:
       - "8000:8000"
     volumes:
       - cert-data:/data/certs
+    environment:
+      # 探测目标：同 Compose 网络内的 TLS 演示服务
+      PROBE_TARGET_HOST: "tls"
+      PROBE_TARGET_PORT: "8443"
+      PROBE_TARGET_HOSTNAME: "api.local"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 5s

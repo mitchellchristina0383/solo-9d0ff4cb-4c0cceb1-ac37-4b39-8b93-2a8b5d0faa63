@@ -77,6 +77,40 @@ def http_get(port: int, path: str) -> tuple[int, dict | str]:
     return resp.status, raw
 
 
+def http_post_json(port: int, path: str, payload: dict) -> tuple[int, dict]:
+    import json
+
+    body = json.dumps(payload).encode()
+    conn = http.client.HTTPConnection("127.0.0.1", port, timeout=10)
+    conn.request(
+        "POST",
+        path,
+        body=body,
+        headers={"Content-Type": "application/json"},
+    )
+    resp = conn.getresponse()
+    raw = resp.read().decode()
+    conn.close()
+    return resp.status, json.loads(raw)
+
+
+def wait_probe_done(port: int, probe_id: str, timeout: float = 60.0) -> dict:
+    """轮询探测报告直到非 running。"""
+    import json
+    import time
+
+    deadline = time.time() + timeout
+    last = {}
+    while time.time() < deadline:
+        status, body = http_get(port, f"/probes/{probe_id}")
+        assert status == 200, body
+        last = body
+        if body["status"] != "running":
+            return body
+        time.sleep(0.2)
+    raise AssertionError(f"probe {probe_id} 超时未结束: {json.dumps(last)[:300]}")
+
+
 def tls_handshake_fingerprint(port: int, server_hostname: str = "api.local") -> str:
     """发起一次新握手并返回服务器叶子证书的 SHA256 指纹（hex）。"""
     ctx = ssl._create_unverified_context()

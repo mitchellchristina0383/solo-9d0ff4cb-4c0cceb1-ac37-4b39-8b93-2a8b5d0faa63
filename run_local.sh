@@ -7,6 +7,10 @@ cd "$(dirname "$0")"
 DATA_DIR="$(pwd)/data/certs"
 export CERT_DATA_DIR="$DATA_DIR"
 export CERT_POLL_INTERVAL="${CERT_POLL_INTERVAL:-0.5}"
+# 探测目标指向本机 TLS 演示服务
+export PROBE_TARGET_HOST="${PROBE_TARGET_HOST:-127.0.0.1}"
+export PROBE_TARGET_PORT="${PROBE_TARGET_PORT:-8443}"
+export PROBE_TARGET_HOSTNAME="${PROBE_TARGET_HOSTNAME:-api.local}"
 mkdir -p "$DATA_DIR"
 
 cleanup() {
